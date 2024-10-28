@@ -15,7 +15,7 @@ builder.Services.AddRazorComponents()
 //builder.Services.AddScoped<DynamoDBService>();
 builder.Services.AddScoped<PaisesModel>();
 builder.Services.AddScoped<CityModel>();
-var credentials = new BasicAWSCredentials("AKIA6K5V7P56SBS2AY4T", "L3Zd6N3jron7Rh3vfT1/emQ0rQSNJmOWPCd5a8r/");
+var credentials = new BasicAWSCredentials("chaveamazon", "amazon");
 builder.Services.AddAWSService<IAmazonDynamoDB>();
 builder.Services.AddAWSService<IAmazonDynamoDB>(new AWSOptions
 {
