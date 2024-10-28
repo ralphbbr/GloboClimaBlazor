@@ -57,15 +57,22 @@
 
     private async Task AddPaisParaFavorito(string name)
     {
+
         paisesModel = new GloboClimaBlazor.Models.PaisesModel
             {
                 Nome = name
             };
 
         var client = HttpClientFactory.CreateClient("API");
+        var paisExisteNaBase = await client.GetFromJsonAsync<List<GloboClimaBlazor.Models.PaisesModel>>("GloboClimaInterno/");
+        if (paisExisteNaBase.Any(p => p.Nome.Equals(paisesModel.Nome, StringComparison.OrdinalIgnoreCase)))
+        {
+            responseMessage = "Esse pais já está nos favoritos.";
+            return;
+        }
         var response = await client.PostAsJsonAsync("GloboClimaInterno/", paisesModel);
 
-        responseMessage = response.IsSuccessStatusCode ? "Dados enviados com sucesso!" : "Erro ao enviar dados.";
+        responseMessage = response.IsSuccessStatusCode ? "Pais salvos nos favoritos com sucesso!" : "Pais ja foi salvo aos favoritos/Erro ao tentar salvar.";
     }
 
     private async Task BuscaPais()
@@ -77,12 +84,12 @@
             pais = await client.GetFromJsonAsync<GloboClimaBlazor.Models.PaisesDTO>($"GloboClima/pais/{paisNome}");
             if (pais == null)
             {
-                errorMessage = "Country not found.";
+                errorMessage = "Pais nao encontrado.";
             }
         }
         catch
         {
-            errorMessage = "Error fetching country data.";
+            errorMessage = "Digite um pais valido.";
         }
     }
 }

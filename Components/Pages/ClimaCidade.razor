@@ -48,16 +48,15 @@
 
         var client = HttpClientFactory.CreateClient("API");
 
-        // Verifica se a cidade já existe
-        var existingCities = await client.GetFromJsonAsync<List<GloboClimaBlazor.Models.CityModel>>("GloboClimaInterno/cidade");
-        if (existingCities.Any(c => c.NomeCidade.Equals(cidade.NomeCidade, StringComparison.OrdinalIgnoreCase)))
+        var cidadeExisteNaBase = await client.GetFromJsonAsync<List<GloboClimaBlazor.Models.CityModel>>("GloboClimaInterno/cidade");
+        if (cidadeExisteNaBase.Any(c => c.NomeCidade.Equals(cidade.NomeCidade, StringComparison.OrdinalIgnoreCase)))
         {
             responseMessage = "Esta cidade já está nos favoritos.";
             return;
         }
 
         var response = await client.PostAsJsonAsync("GloboClimaInterno/cidade", cidade);
-        responseMessage = response.IsSuccessStatusCode ? "Dados enviados com sucesso!" : "Erro ao enviar dados.";
+        responseMessage = response.IsSuccessStatusCode ? "Cidade salva aos favoritos com sucesso!" : "Erro ao enviar dados.";
     }
 
     private async Task BuscaClimaCidade()
