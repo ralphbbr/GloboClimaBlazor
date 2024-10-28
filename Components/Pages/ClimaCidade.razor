@@ -1,0 +1,80 @@
+﻿@page "/ClimaCidade"
+@rendermode InteractiveServer
+@inject IHttpClientFactory HttpClientFactory
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+<div class="container mt-4">
+    <h3 class="text-center">Clima da Cidade no Momento</h3>
+
+    <div class="input-group mb-3">
+        <input type="text" @bind="cidadeNome" placeholder="Digite o nome da cidade" class="form-control" />
+        <button @onclick="BuscaClimaCidade" class="btn btn-primary">Ver Clima</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(responseMessage))
+    {
+        <div class="alert alert-info mt-3">@responseMessage</div>
+    }
+
+    @if (weather != null)
+    {
+        <div class="weather-info mt-4 border p-3 rounded">
+            <h4 class="text-success">Clima em @weather.Name:</h4>
+            <p><strong>Temperatura:</strong> @weather.Main.Temp °C</p>
+            <p><strong>Sensação Térmica:</strong> @weather.Main.Feels_like °C</p>
+            <p><strong>Umidade:</strong> @weather.Main.Humidity %</p>
+            <button @onclick="SalvarFav" class="btn btn-secondary mt-2">Adicionar aos Favoritos</button>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger mt-3">@errorMessage</div>
+    }
+</div>
+
+@code {
+    private string cidadeNome;
+    private GloboClimaBlazor.Models.ClimaDTO.PrevisaoClimatica weather;
+    private GloboClimaBlazor.Models.CityModel cidade;
+    private string errorMessage;
+    private string responseMessage;
+
+    private async Task SalvarFav()
+    {
+        cidade = new GloboClimaBlazor.Models.CityModel
+            {
+                NomeCidade = cidadeNome
+            };
+
+        var client = HttpClientFactory.CreateClient("API");
+
+        // Verifica se a cidade já existe
+        var existingCities = await client.GetFromJsonAsync<List<GloboClimaBlazor.Models.CityModel>>("GloboClimaInterno/cidade");
+        if (existingCities.Any(c => c.NomeCidade.Equals(cidade.NomeCidade, StringComparison.OrdinalIgnoreCase)))
+        {
+            responseMessage = "Esta cidade já está nos favoritos.";
+            return;
+        }
+
+        var response = await client.PostAsJsonAsync("GloboClimaInterno/cidade", cidade);
+        responseMessage = response.IsSuccessStatusCode ? "Dados enviados com sucesso!" : "Erro ao enviar dados.";
+    }
+
+    private async Task BuscaClimaCidade()
+    {
+        errorMessage = null;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("API");
+            weather = await client.GetFromJsonAsync<GloboClimaBlazor.Models.ClimaDTO.PrevisaoClimatica>($"GloboClima/{cidadeNome}");
+            if (weather == null)
+            {
+                errorMessage = "Dados do clima não encontrados.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erro ao buscar dados do clima: {ex.Message}";
+        }
+    }
+}

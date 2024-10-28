@@ -1,0 +1,88 @@
+﻿@page "/paises"
+@rendermode InteractiveServer
+@inject IHttpClientFactory HttpClientFactory
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+<PageTitle>Paises</PageTitle>
+
+<div class="container mt-4">
+    <h3 class="text-center">Lista de Países</h3>
+
+    <div class="input-group mb-3">
+        <input type="text" @bind="paisNome" class="form-control" placeholder="Qual país você quer as informações?" />
+        <button class="btn btn-primary" @onclick="BuscaPais">Search</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    @if (pais != null)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h4 class="card-title">Detalhes do País: @pais.Name.Common</h4>
+                <img src="@pais.Flags.Png" alt="Flag of @pais.Name.Common" class="img-fluid" style="width: 100px; height: auto;" />
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Nome Oficial:</strong> @pais.Name.Official</li>
+                    <li class="list-group-item"><strong>Código (CCA2):</strong> @pais.Cca2</li>
+                    <li class="list-group-item"><strong>Código (CCA3):</strong> @pais.Cca3</li>
+                    <li class="list-group-item"><strong>Área:</strong> @pais.Area km²</li>
+                    <li class="list-group-item"><strong>População:</strong> @pais.Population</li>
+                    <li class="list-group-item"><strong>Capital:</strong> @string.Join(", ", pais.Capital)</li>
+                    <li class="list-group-item"><strong>Região:</strong> @pais.Region</li>
+                    <li class="list-group-item"><strong>Sub-região:</strong> @pais.Subregion</li>
+                    <li class="list-group-item"><strong>Moedas:</strong> @string.Join(", ", pais.Currencies.Select(c => c.Value.Name))</li>
+                    <li class="list-group-item"><strong>Idiomas:</strong> @string.Join(", ", pais.Languages.Values)</li>
+                    <li class="list-group-item"><strong>Independente:</strong> @(pais.Independent ? "Sim" : "Não")</li>
+                </ul>
+                <button class="btn btn-success mt-3" @onclick="() => AddPaisParaFavorito(pais.Name.Common)">Adicionar aos Favoritos</button>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(responseMessage))
+        {
+            <div class="alert alert-success">@responseMessage</div>
+        }
+    }
+</div>
+
+@code {
+    private string paisNome;
+    private string errorMessage;
+    private GloboClimaBlazor.Models.PaisesDTO pais;
+    private GloboClimaBlazor.Models.PaisesModel paisesModel;
+    private string responseMessage;
+
+    private async Task AddPaisParaFavorito(string name)
+    {
+        paisesModel = new GloboClimaBlazor.Models.PaisesModel
+            {
+                Nome = name
+            };
+
+        var client = HttpClientFactory.CreateClient("API");
+        var response = await client.PostAsJsonAsync("GloboClimaInterno/", paisesModel);
+
+        responseMessage = response.IsSuccessStatusCode ? "Dados enviados com sucesso!" : "Erro ao enviar dados.";
+    }
+
+    private async Task BuscaPais()
+    {
+        errorMessage = null;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("API");
+            pais = await client.GetFromJsonAsync<GloboClimaBlazor.Models.PaisesDTO>($"GloboClima/pais/{paisNome}");
+            if (pais == null)
+            {
+                errorMessage = "Country not found.";
+            }
+        }
+        catch
+        {
+            errorMessage = "Error fetching country data.";
+        }
+    }
+}

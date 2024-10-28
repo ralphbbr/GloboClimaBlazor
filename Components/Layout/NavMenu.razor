@@ -1,0 +1,34 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">GloboClimaBlazor</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Principal
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="ClimaCidade">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> ClimaCidade
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="paises">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Paises
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="favoritos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Favoritos
+            </NavLink>
+        </div>
+    </nav>
+</div>
+

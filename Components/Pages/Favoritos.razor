@@ -1,0 +1,146 @@
+﻿@page "/favoritos"
+@rendermode InteractiveServer
+@inject HttpClient httpclient
+@inject GloboClimaBlazor.Models.PaisesModel paises
+@inject GloboClimaBlazor.Models.CityModel cidades
+@inject IHttpClientFactory HttpClientFactory
+
+<div class="container mt-4">
+    <h3 class="mb-4">Lista de Países</h3>
+    <button @onclick="GetAllCountries" class="btn btn-primary mb-3">Obter Todos os Países</button>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+            <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    @if (countries != null && countries.Any())
+    {
+            <ul class="list-group mb-4">
+            @foreach (var country in countries)
+            {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                    @country.Nome
+                            <button @onclick="() => HandleCountryClick(country.Nome)" class="btn btn-danger btn-sm">Deletar</button>
+                        </li>
+            }
+            </ul>
+    }
+    else if (countries != null)
+    {
+            <p>No countries found.</p>
+    }
+
+    <h3 class="mb-4">Lista de Cidades</h3>
+    <button @onclick="GetAllCities" class="btn btn-primary mb-3">Obter Todas as Cidades</button>
+
+    @if (cities != null && cities.Any())
+    {
+            <ul class="list-group">
+            @foreach (var city in cities)
+            {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                    @city.NomeCidade
+                                    <button @onclick="() => HandleCityClick(city.NomeCidade)" class="btn btn-danger btn-sm">Deletar</button>
+                        </li>
+            }
+            </ul>
+    }
+    else if (cities != null)
+    {
+            <p>No city found.</p>
+    }
+</div>
+
+@code {
+    private string errorMessage;
+    private string message;
+    private string countryName;
+    private string cityName;
+    private List<GloboClimaBlazor.Models.PaisesModel> countries;
+    private List<GloboClimaBlazor.Models.CityModel> cities;
+
+    private async Task GetAllCountries()
+    {
+        errorMessage = null;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("API");
+            countries = await client.GetFromJsonAsync<List<GloboClimaBlazor.Models.PaisesModel>>("GloboClimaInterno");
+            if (countries == null || !countries.Any())
+            {
+                errorMessage = "Nenhum país encontrado.";
+            }
+        }
+        catch
+        {
+            errorMessage = "Erro ao buscar dados dos países.";
+        }
+    }
+
+    private async Task GetAllCities()
+    {
+        errorMessage = null;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("API");
+            cities = await client.GetFromJsonAsync<List<GloboClimaBlazor.Models.CityModel>>("GloboClimaInterno/cidade");
+            if (cities == null || !cities.Any())
+            {
+                errorMessage = "Nenhuma cidade encontrada.";
+            }
+        }
+        catch
+        {
+            errorMessage = "Erro ao buscar dados das cidades.";
+        }
+    }
+
+    private async Task HandleCountryClick(string countryName)
+{
+    errorMessage = null;
+    try
+    {
+        var client = HttpClientFactory.CreateClient("API");
+        var response = await client.DeleteAsync($"GloboClimaInterno/{countryName}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            message = $"Pais {countryName} excluída com sucesso.";
+            await GetAllCountries();
+        }
+        else
+        {
+            errorMessage = $"Erro ao excluir o pais: {response.ReasonPhrase}";
+        }
+    }
+    catch (Exception ex)
+    {
+        errorMessage = $"Erro ao excluir o pais: {ex.Message}";
+    }
+}
+
+private async Task HandleCityClick(string cityName)
+{
+    errorMessage = null;
+    try
+    {
+        var client = HttpClientFactory.CreateClient("API");
+        var response = await client.DeleteAsync($"GloboClimaInterno/cidade/{cityName}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            message = $"Cidade {cityName} excluída com sucesso.";
+            await GetAllCities();
+        }
+        else
+        {
+            errorMessage = $"Erro ao excluir a cidade: {response.ReasonPhrase}";
+        }
+    }
+    catch (Exception ex)
+    {
+        errorMessage = $"Erro ao excluir a cidade: {ex.Message}";
+    }
+}
+}
